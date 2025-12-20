@@ -46,7 +46,16 @@ def clean_data(input_file, output_file=None):
             df = pd.read_excel(input_file)
         elif file_extension == '.csv':
             print(f"Reading CSV file: {input_file}")
-            df = pd.read_csv(input_file)
+            # Try different encodings
+            try:
+                df = pd.read_csv(input_file, encoding='utf-8')
+            except UnicodeDecodeError:
+                print("UTF-8 failed, trying latin-1 encoding...")
+                try:
+                    df = pd.read_csv(input_file, encoding='latin-1')
+                except UnicodeDecodeError:
+                    print("latin-1 failed, trying cp1252 encoding...")
+                    df = pd.read_csv(input_file, encoding='cp1252')
         else:
             raise ValueError(f"Unsupported file format: {file_extension}. Please use .xlsx or .csv")
 
