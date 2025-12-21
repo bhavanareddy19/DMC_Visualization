@@ -198,6 +198,36 @@ def create_overall_visualizations(df):
 
     st.markdown("---")
 
+    # Data Table: Product Summary Matrix
+    if "Product name" in df_filtered.columns:
+        st.markdown("#### 📊 Product Summary Table")
+
+        product_table = df_filtered.groupby("Product name").agg({
+            "Charged amount": "sum",
+            "Copies": "sum",
+            "Product name": "count"
+        }).rename(columns={"Product name": "Order Count"})
+
+        # Add total row
+        total_row = pd.DataFrame({
+            "Charged amount": [product_table["Charged amount"].sum()],
+            "Copies": [product_table["Copies"].sum()],
+            "Order Count": [product_table["Order Count"].sum()]
+        }, index=["Total"])
+
+        product_table_display = pd.concat([product_table, total_row])
+
+        st.dataframe(
+            product_table_display.style.format({
+                "Charged amount": "${:,.2f}",
+                "Copies": "{:,.0f}",
+                "Order Count": "{:,.0f}"
+            }),
+            use_container_width=True
+        )
+
+    st.markdown("---")
+
     # Interactive Product Summary with drill-down
     if "Product name" in df_filtered.columns:
         col1, col2 = st.columns([2, 1])
@@ -265,6 +295,35 @@ def create_overall_visualizations(df):
         )
 
         fig.update_layout(height=500)
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Charging Count Analysis
+    if "Charged" in df_filtered.columns:
+        st.markdown("#### 📊 Count of Charged Orders")
+
+        count_charged_df = df_filtered["Charged"].value_counts().reset_index()
+        count_charged_df.columns = ["Charged", "Count"]
+
+        fig = go.Figure(data=[
+            go.Bar(
+                x=count_charged_df["Charged"],
+                y=count_charged_df["Count"],
+                marker_color=['#2ca02c' if x == 'Yes' else '#d62728' if x == 'No' else '#ff7f0e'
+                             for x in count_charged_df["Charged"]],
+                text=count_charged_df["Count"],
+                textposition='outside',
+                hovertemplate='<b>%{x}</b><br>Count: %{y:,}<extra></extra>'
+            )
+        ])
+
+        fig.update_layout(
+            title="Count of Charged by Charged Status",
+            xaxis_title="Charged",
+            yaxis_title="Count of Orders",
+            height=400,
+            showlegend=False
+        )
+
         st.plotly_chart(fig, use_container_width=True)
 
     # Charging Analysis with Animation
@@ -428,6 +487,31 @@ def create_3d_print_visualizations(df):
         if "Charged amount" in df3d_filtered.columns:
             st.metric("💰 Revenue", f"${df3d_filtered['Charged amount'].sum():,.2f}")
 
+    # Material Summary Table
+    if "Material name" in df3d_filtered.columns:
+        st.markdown("#### 📋 Material Summary Table")
+
+        material_table = df3d_filtered.groupby("Material name").agg({
+            "Copies": "sum",
+            "Charged amount": "sum"
+        }).sort_values("Copies", ascending=False)
+
+        # Add total row
+        total_row = pd.DataFrame({
+            "Copies": [material_table["Copies"].sum()],
+            "Charged amount": [material_table["Charged amount"].sum()]
+        }, index=["Total"])
+
+        material_table_display = pd.concat([material_table, total_row])
+
+        st.dataframe(
+            material_table_display.style.format({
+                "Copies": "{:,.0f}",
+                "Charged amount": "${:,.2f}"
+            }),
+            use_container_width=True
+        )
+
     # Material Analysis with 3D effect
     if "Material name" in df3d_filtered.columns:
         st.markdown("#### 🧱 Material Usage Analysis")
@@ -527,6 +611,34 @@ def create_3d_print_visualizations(df):
         fig.update_layout(height=500)
         st.plotly_chart(fig, use_container_width=True)
 
+    # Order Status Analysis for 3D Print
+    if "Order status" in df3d_filtered.columns:
+        st.markdown("#### 📋 Order Status Distribution")
+
+        status_data = df3d_filtered.groupby("Order status")["Copies"].sum().sort_values(ascending=False)
+
+        fig = go.Figure(data=[
+            go.Bar(
+                x=status_data.index,
+                y=status_data.values,
+                marker_color='#9467bd',
+                text=[f'{int(x):,}' for x in status_data.values],
+                textposition='outside',
+                hovertemplate='<b>%{x}</b><br>Copies: %{y:,}<extra></extra>'
+            )
+        ])
+
+        fig.update_layout(
+            title="Sum of Copies by Order Status",
+            xaxis_title="Order Status",
+            yaxis_title="Sum of Copies",
+            height=400,
+            xaxis_tickangle=-45,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
 def create_document_visualizations(df):
     """Enhanced Document visualizations"""
     st.markdown('<p class="category-header">📄 DOCUMENT ANALYSIS</p>', unsafe_allow_html=True)
@@ -574,6 +686,23 @@ def create_document_visualizations(df):
     with col3:
         if "Charged amount" in df_doc_filtered.columns:
             st.metric("💰 Revenue", f"${df_doc_filtered['Charged amount'].sum():,.2f}")
+
+    # Document Summary Table
+    if "Paper type" in df_doc_filtered.columns and "Paper size" in df_doc_filtered.columns:
+        st.markdown("#### 📋 Document Summary Table")
+
+        doc_table = df_doc_filtered.groupby(["Paper type", "Paper size"]).agg({
+            "Copies": "sum",
+            "Charged amount": "sum"
+        }).sort_values("Copies", ascending=False)
+
+        st.dataframe(
+            doc_table.style.format({
+                "Copies": "{:,.0f}",
+                "Charged amount": "${:,.2f}"
+            }),
+            use_container_width=True
+        )
 
     # Paper Analysis - Grouped Bar
     if "Paper type" in df_doc_filtered.columns and "Paper size" in df_doc_filtered.columns:
@@ -662,6 +791,34 @@ def create_document_visualizations(df):
 
             st.plotly_chart(fig, use_container_width=True)
 
+    # Order Status Analysis for Documents
+    if "Order status" in df_doc_filtered.columns:
+        st.markdown("#### 📋 Order Status Distribution")
+
+        status_data = df_doc_filtered.groupby("Order status")["Copies"].sum().sort_values(ascending=False)
+
+        fig = go.Figure(data=[
+            go.Bar(
+                x=status_data.index,
+                y=status_data.values,
+                marker_color='#ff7f0e',
+                text=[f'{int(x):,}' for x in status_data.values],
+                textposition='outside',
+                hovertemplate='<b>%{x}</b><br>Copies: %{y:,}<extra></extra>'
+            )
+        ])
+
+        fig.update_layout(
+            title="Sum of Copies by Order Status",
+            xaxis_title="Order Status",
+            yaxis_title="Sum of Copies",
+            height=400,
+            xaxis_tickangle=-45,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
 def create_poster_visualizations(df):
     """Enhanced Poster visualizations"""
     st.markdown('<p class="category-header">🖼️ LARGE FORMAT POSTER ANALYSIS</p>', unsafe_allow_html=True)
@@ -702,6 +859,31 @@ def create_poster_visualizations(df):
     with col3:
         if "Charged amount" in df_poster_filtered.columns:
             st.metric("💰 Revenue", f"${df_poster_filtered['Charged amount'].sum():,.2f}")
+
+    # Poster Summary Table
+    if "Paper size" in df_poster_filtered.columns:
+        st.markdown("#### 📋 Poster Summary Table")
+
+        poster_table = df_poster_filtered.groupby("Paper size").agg({
+            "Copies": "sum",
+            "Charged amount": "sum"
+        }).sort_values("Copies", ascending=False)
+
+        # Add total row
+        total_row = pd.DataFrame({
+            "Copies": [poster_table["Copies"].sum()],
+            "Charged amount": [poster_table["Charged amount"].sum()]
+        }, index=["Total"])
+
+        poster_table_display = pd.concat([poster_table, total_row])
+
+        st.dataframe(
+            poster_table_display.style.format({
+                "Copies": "{:,.0f}",
+                "Charged amount": "${:,.2f}"
+            }),
+            use_container_width=True
+        )
 
     # Poster Size Analysis - Stacked Bar
     if "Paper size" in df_poster_filtered.columns and "Paper color" in df_poster_filtered.columns:
@@ -769,6 +951,76 @@ def create_poster_visualizations(df):
 
         st.plotly_chart(fig, use_container_width=True)
 
+    # Paper Color Analysis - Stacked Horizontal Bar
+    if "Paper color" in df_poster_filtered.columns:
+        st.markdown("#### 🎨 Paper Color Distribution")
+
+        color_data = df_poster_filtered.groupby("Paper color")["Copies"].sum().sort_values(ascending=False)
+
+        fig = go.Figure(data=[
+            go.Bar(
+                y=["Large-Format Poster"],
+                x=[color_data.sum()],
+                orientation='h',
+                marker_color='lightgray',
+                showlegend=False,
+                hoverinfo='skip'
+            )
+        ])
+
+        # Add stacked segments for each color
+        left = 0
+        for color, value in color_data.items():
+            fig.add_trace(go.Bar(
+                name=color,
+                y=["Large-Format Poster"],
+                x=[value],
+                orientation='h',
+                text=f'{int(value):,}',
+                textposition='inside',
+                hovertemplate=f'<b>{color}</b><br>Copies: {int(value):,}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='stack',
+            title="Sum of Copies by Paper Color (Stacked)",
+            xaxis_title="Sum of Copies",
+            yaxis_title="Product",
+            height=300,
+            showlegend=True,
+            legend_title="Paper Color"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Order Status Analysis for Posters
+    if "Order status" in df_poster_filtered.columns:
+        st.markdown("#### 📋 Order Status Distribution")
+
+        status_data = df_poster_filtered.groupby("Order status")["Copies"].sum().sort_values(ascending=True)
+
+        fig = go.Figure(data=[
+            go.Bar(
+                y=status_data.index,
+                x=status_data.values,
+                orientation='h',
+                marker_color='#8c564b',
+                text=[f'{int(x):,}' for x in status_data.values],
+                textposition='outside',
+                hovertemplate='<b>%{y}</b><br>Copies: %{x:,}<extra></extra>'
+            )
+        ])
+
+        fig.update_layout(
+            title="Sum of Copies by Order Status",
+            xaxis_title="Sum of Copies",
+            yaxis_title="Order Status",
+            height=300,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
 # ==================== ENHANCED COMPARISON VISUALIZATIONS ====================
 
 def create_overall_comparison(df):
@@ -826,6 +1078,48 @@ def create_overall_comparison(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
+    # Order Status Comparison Across Seasons
+    if "Order status" in df_filtered.columns:
+        st.markdown("#### 📋 Order Status Comparison Across Seasons")
+
+        col1, col2 = st.columns([1, 4])
+
+        with col1:
+            status_chart_type = st.radio("Chart Type", ["Grouped", "Stacked"], key="status_chart_type")
+
+        with col2:
+            status_pivot = df_filtered.pivot_table(
+                values="Copies",
+                index="Season",
+                columns="Order status",
+                aggfunc="sum",
+                fill_value=0
+            )
+
+            fig = go.Figure()
+
+            for status in status_pivot.columns:
+                fig.add_trace(go.Bar(
+                    name=status,
+                    x=status_pivot.index,
+                    y=status_pivot[status],
+                    text=[f'{int(x):,}' if x > 0 else '' for x in status_pivot[status]],
+                    textposition='auto',
+                    hovertemplate=f'<b>{status}</b><br>Season: %{{x}}<br>Copies: %{{y:,}}<extra></extra>'
+                ))
+
+            fig.update_layout(
+                barmode='group' if status_chart_type == "Grouped" else 'stack',
+                xaxis_title="Season",
+                yaxis_title="Copies",
+                height=450,
+                hovermode='x unified',
+                legend_title="Order Status",
+                title="Sum of Copies by Season and Order Status"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
     # Product Comparison - Grouped & Stacked toggle
     if "Product name" in df_filtered.columns:
         st.markdown("#### 📊 Product Performance Across Seasons")
@@ -866,6 +1160,46 @@ def create_overall_comparison(df):
             )
 
             st.plotly_chart(fig, use_container_width=True)
+
+    # Charged Status by Season - Stacked Horizontal
+    if "Charged" in df_filtered.columns:
+        st.markdown("#### 💳 Charged Status Distribution by Season")
+
+        charged_pivot = df_filtered.pivot_table(
+            values="Copies",
+            index="Season",
+            columns="Charged",
+            aggfunc="sum",
+            fill_value=0
+        )
+
+        fig = go.Figure()
+
+        colors_map = {"Yes": "#2ca02c", "No": "#d62728", "Unknown": "#ff7f0e"}
+
+        for col in charged_pivot.columns:
+            fig.add_trace(go.Bar(
+                name=col,
+                y=charged_pivot.index,
+                x=charged_pivot[col],
+                orientation='h',
+                marker_color=colors_map.get(col, "#1f77b4"),
+                text=[f'{int(x):,}' if x > 0 else '' for x in charged_pivot[col]],
+                textposition='inside',
+                hovertemplate=f'<b>{col}</b><br>Season: %{{y}}<br>Copies: %{{x:,}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='stack',
+            title="Sum of Copies by Season and Charged Status (Stacked)",
+            xaxis_title="Sum of Copies",
+            yaxis_title="Season",
+            height=400,
+            hovermode='y unified',
+            legend_title="Charged"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
 
     # Season Distribution - Enhanced Pie
     st.markdown("#### 📈 Copies Distribution by Season")
