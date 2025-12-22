@@ -1,3 +1,14 @@
+---
+title: DMC Order Analytics Dashboard
+emoji: 📊
+colorFrom: blue
+colorTo: purple
+sdk: streamlit
+sdk_version: "1.28.0"
+app_file: app.py
+pinned: false
+---
+
 # DMC Order Analytics Dashboard
 
 A comprehensive data visualization and analysis tool for DMC (Digital Media Center) order data. This application provides insights into order patterns, revenue, product performance, and more.
