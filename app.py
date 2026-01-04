@@ -177,20 +177,13 @@ def create_overall_visualizations(df):
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.metric("📦 Total Orders", f"{len(df_filtered):,}",
-                 delta=f"{len(df_filtered) - len(df)}" if len(df_filtered) != len(df) else None)
+        st.metric("📦 Total Orders", f"{len(df_filtered):,}")
     with col2:
         if "Charged amount" in df_filtered.columns:
-            total_revenue = df_filtered["Charged amount"].sum()
-            original_revenue = df["Charged amount"].sum()
-            st.metric("💰 Total Revenue", f"${total_revenue:,.2f}",
-                     delta=f"${total_revenue - original_revenue:,.2f}" if total_revenue != original_revenue else None)
+            st.metric("💰 Total Revenue", f"${df_filtered['Charged amount'].sum():,.2f}")
     with col3:
         if "Copies" in df_filtered.columns:
-            total_copies = df_filtered["Copies"].sum()
-            original_copies = df["Copies"].sum()
-            st.metric("📄 Total Copies", f"{int(total_copies):,}",
-                     delta=f"{int(total_copies - original_copies):,}" if total_copies != original_copies else None)
+            st.metric("📄 Total Copies", f"{int(df_filtered['Copies'].sum()):,}")
     with col4:
         if "Charged" in df_filtered.columns and len(df_filtered) > 0:
             charged_pct = (df_filtered["Charged"] == "Yes").sum() / len(df_filtered) * 100
