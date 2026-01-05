@@ -632,6 +632,38 @@ def create_3d_print_visualizations(df):
 
         st.plotly_chart(fig, use_container_width=True)
 
+    # Order Status by Product Name - Clustered Columns
+    if "Order status" in df3d_filtered.columns:
+        st.markdown("#### 📊 Copies by Product Name and Order Status")
+
+        status_product = df3d_filtered.groupby("Order status")["Copies"].sum().reset_index()
+
+        # Create grouped bar chart
+        fig = go.Figure()
+
+        for status in status_product["Order status"].unique():
+            status_df = status_product[status_product["Order status"] == status]
+            fig.add_trace(go.Bar(
+                name=status,
+                x=["3D Print"],
+                y=status_df["Copies"],
+                text=[f'{int(x):,}' for x in status_df["Copies"]],
+                textposition='outside',
+                hovertemplate=f'<b>{status}</b><br>Product: 3D Print<br>Copies: %{{y:,}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='group',
+            title="Sum of Copies by Product Name and Order Status",
+            xaxis_title="Product Name",
+            yaxis_title="Sum of Copies",
+            height=450,
+            legend_title="Order Status",
+            hovermode='x unified'
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
 def create_document_visualizations(df):
     """Enhanced Document visualizations"""
     st.markdown('<p class="category-header">📄 DOCUMENT ANALYSIS</p>', unsafe_allow_html=True)
@@ -696,6 +728,71 @@ def create_document_visualizations(df):
             }),
             use_container_width=True
         )
+
+    # Individual Paper Type Analysis
+    if "Paper type" in df_doc_filtered.columns:
+        st.markdown("#### 📑 Copies by Paper Type")
+
+        paper_type_data = df_doc_filtered.groupby("Paper type")["Copies"].sum().sort_values(ascending=False)
+
+        fig = go.Figure(data=[
+            go.Bar(
+                x=paper_type_data.index,
+                y=paper_type_data.values,
+                marker=dict(
+                    color=paper_type_data.values,
+                    colorscale='Blues',
+                    showscale=True,
+                    colorbar=dict(title="Copies")
+                ),
+                text=[f'{int(x):,}' for x in paper_type_data.values],
+                textposition='outside',
+                hovertemplate='<b>%{x}</b><br>Copies: %{y:,}<extra></extra>'
+            )
+        ])
+
+        fig.update_layout(
+            title="Sum of Copies by Paper Type",
+            xaxis_title="Paper Type",
+            yaxis_title="Sum of Copies",
+            height=400,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Individual Paper Size Analysis
+    if "Paper size" in df_doc_filtered.columns:
+        st.markdown("#### 📏 Copies by Paper Size")
+
+        paper_size_data = df_doc_filtered.groupby("Paper size")["Copies"].sum().sort_values(ascending=False)
+
+        fig = go.Figure(data=[
+            go.Bar(
+                y=paper_size_data.index,
+                x=paper_size_data.values,
+                orientation='h',
+                marker=dict(
+                    color=paper_size_data.values,
+                    colorscale='Greens',
+                    showscale=True,
+                    colorbar=dict(title="Copies")
+                ),
+                text=[f'{int(x):,}' for x in paper_size_data.values],
+                textposition='outside',
+                hovertemplate='<b>%{y}</b><br>Copies: %{x:,}<extra></extra>'
+            )
+        ])
+
+        fig.update_layout(
+            title="Sum of Copies by Paper Size",
+            xaxis_title="Sum of Copies",
+            yaxis_title="Paper Size",
+            height=400,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
 
     # Paper Analysis - Grouped Bar
     if "Paper type" in df_doc_filtered.columns and "Paper size" in df_doc_filtered.columns:
@@ -812,6 +909,38 @@ def create_document_visualizations(df):
 
         st.plotly_chart(fig, use_container_width=True)
 
+    # Order Status by Product Name - Clustered Columns
+    if "Order status" in df_doc_filtered.columns:
+        st.markdown("#### 📊 Copies by Product Name and Order Status")
+
+        status_product = df_doc_filtered.groupby("Order status")["Copies"].sum().reset_index()
+
+        # Create grouped bar chart
+        fig = go.Figure()
+
+        for status in status_product["Order status"].unique():
+            status_df = status_product[status_product["Order status"] == status]
+            fig.add_trace(go.Bar(
+                name=status,
+                x=["Document"],
+                y=status_df["Copies"],
+                text=[f'{int(x):,}' for x in status_df["Copies"]],
+                textposition='outside',
+                hovertemplate=f'<b>{status}</b><br>Product: Document<br>Copies: %{{y:,}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='group',
+            title="Sum of Copies by Product Name and Order Status",
+            xaxis_title="Product Name",
+            yaxis_title="Sum of Copies",
+            height=450,
+            legend_title="Order Status",
+            hovermode='x unified'
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
 def create_poster_visualizations(df):
     """Enhanced Poster visualizations"""
     st.markdown('<p class="category-header">🖼️ LARGE FORMAT POSTER ANALYSIS</p>', unsafe_allow_html=True)
@@ -878,9 +1007,40 @@ def create_poster_visualizations(df):
             use_container_width=True
         )
 
+    # Poster Size Analysis - Clustered Columns
+    if "Paper size" in df_poster_filtered.columns:
+        st.markdown("#### 📏 Copies by Product Name and Paper Size (Clustered)")
+
+        size_data = df_poster_filtered.groupby("Paper size")["Copies"].sum().sort_values(ascending=False)
+
+        # Create grouped bar chart
+        fig = go.Figure()
+
+        for size in size_data.index:
+            fig.add_trace(go.Bar(
+                name=size,
+                x=["Large-Format Poster"],
+                y=[size_data[size]],
+                text=[f'{int(size_data[size]):,}'],
+                textposition='outside',
+                hovertemplate=f'<b>{size}</b><br>Product: Large-Format Poster<br>Copies: %{{y:,}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='group',
+            title="Sum of Copies by Product Name and Paper Size",
+            xaxis_title="Product Name",
+            yaxis_title="Sum of Copies",
+            height=450,
+            legend_title="Paper Size",
+            hovermode='x unified'
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
     # Poster Size Analysis - Stacked Bar
     if "Paper size" in df_poster_filtered.columns and "Paper color" in df_poster_filtered.columns:
-        st.markdown("#### 📏 Size & Color Matrix")
+        st.markdown("#### 📏 Size & Color Matrix (Stacked)")
 
         size_color_data = df_poster_filtered.pivot_table(
             values="Copies",
@@ -1010,6 +1170,39 @@ def create_poster_visualizations(df):
             yaxis_title="Order Status",
             height=300,
             showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Order Status by Product Name - Clustered Horizontal Bars
+    if "Order status" in df_poster_filtered.columns:
+        st.markdown("#### 📊 Copies by Product Name and Order Status")
+
+        status_product = df_poster_filtered.groupby("Order status")["Copies"].sum().sort_values(ascending=True).reset_index()
+
+        # Create grouped horizontal bar chart
+        fig = go.Figure()
+
+        for status in status_product["Order status"].unique():
+            status_df = status_product[status_product["Order status"] == status]
+            fig.add_trace(go.Bar(
+                name=status,
+                y=["Large-Format Poster"],
+                x=status_df["Copies"],
+                orientation='h',
+                text=[f'{int(x):,}' for x in status_df["Copies"]],
+                textposition='outside',
+                hovertemplate=f'<b>{status}</b><br>Product: Large-Format Poster<br>Copies: %{{x:,}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='group',
+            title="Sum of Copies by Product Name and Order Status",
+            xaxis_title="Sum of Copies",
+            yaxis_title="Product Name",
+            height=400,
+            legend_title="Order Status",
+            hovermode='y unified'
         )
 
         st.plotly_chart(fig, use_container_width=True)
@@ -1232,8 +1425,74 @@ def create_3d_print_comparison(df):
         st.warning("No 3D Print data found")
         return
 
+    # Simple Copies by Season
+    st.markdown("#### 📦 Copies by Season and Product Name")
+
+    season_copies = df3d.groupby("Season")["Copies"].sum().sort_index()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig = go.Figure(data=[
+            go.Bar(
+                x=season_copies.index,
+                y=season_copies.values,
+                marker=dict(
+                    color=season_copies.values,
+                    colorscale='Purples',
+                    showscale=True,
+                    colorbar=dict(title="Copies")
+                ),
+                text=[f'{int(x):,}' for x in season_copies.values],
+                textposition='outside',
+                hovertemplate='<b>%{x}</b><br>Copies: %{y:,}<extra></extra>'
+            )
+        ])
+
+        fig.update_layout(
+            title="Sum of Copies by Season and Product Name",
+            xaxis_title="Season",
+            yaxis_title="Sum of Copies",
+            height=400,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Simple Charged Amount by Season
+    with col2:
+        st.markdown("#### 💰 Charged Amount by Season and Product Name")
+
+        season_amount = df3d.groupby("Season")["Charged amount"].sum().sort_index()
+
+        fig = go.Figure(data=[
+            go.Bar(
+                x=season_amount.index,
+                y=season_amount.values,
+                marker=dict(
+                    color=season_amount.values,
+                    colorscale='Greens',
+                    showscale=True,
+                    colorbar=dict(title="Revenue ($)")
+                ),
+                text=[f'${x:,.0f}' for x in season_amount.values],
+                textposition='outside',
+                hovertemplate='<b>%{x}</b><br>Revenue: $%{y:,.2f}<extra></extra>'
+            )
+        ])
+
+        fig.update_layout(
+            title="Sum of Charged Amount by Season and Product Name",
+            xaxis_title="Season",
+            yaxis_title="Sum of Charged Amount",
+            height=400,
+            showlegend=False
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
     # Dual axis chart - Copies and Revenue
-    st.markdown("#### 📊 Copies & Revenue Trend")
+    st.markdown("#### 📊 Copies & Revenue Trend (Dual Axis)")
 
     season_data = df3d.groupby("Season").agg({
         "Copies": "sum",
@@ -1280,9 +1539,155 @@ def create_3d_print_comparison(df):
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # Material comparison across seasons
+    # Copies by Season and Machine - Stacked Horizontal
+    if "Special Information (Operator Only) Machine" in df3d.columns:
+        st.markdown("#### 🤖 Copies by Season and Machine (Stacked Horizontal)")
+
+        machine_pivot = df3d.pivot_table(
+            values="Copies",
+            index="Season",
+            columns="Special Information (Operator Only) Machine",
+            aggfunc="sum",
+            fill_value=0
+        )
+
+        fig = go.Figure()
+
+        for machine in machine_pivot.columns:
+            fig.add_trace(go.Bar(
+                name=str(machine),
+                y=machine_pivot.index,
+                x=machine_pivot[machine],
+                orientation='h',
+                text=[f'{int(x):,}' if x > 0 else '' for x in machine_pivot[machine]],
+                textposition='inside',
+                hovertemplate=f'<b>{machine}</b><br>Season: %{{y}}<br>Copies: %{{x:,}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='stack',
+            title="Sum of Copies by Season and Machine",
+            xaxis_title="Sum of Copies",
+            yaxis_title="Season",
+            height=450,
+            hovermode='y unified',
+            legend_title="Machine"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Material comparison - Grouped Columns
     if "Material name" in df3d.columns:
-        st.markdown("#### 🧱 Material Usage Evolution")
+        st.markdown("#### 🧱 Copies by Season and Material (Grouped)")
+
+        material_pivot = df3d.pivot_table(
+            values="Copies",
+            index="Season",
+            columns="Material name",
+            aggfunc="sum",
+            fill_value=0
+        )
+
+        fig = go.Figure()
+
+        for material in material_pivot.columns:
+            fig.add_trace(go.Bar(
+                name=str(material),
+                x=material_pivot.index,
+                y=material_pivot[material],
+                text=[f'{int(x):,}' if x > 0 else '' for x in material_pivot[material]],
+                textposition='outside',
+                hovertemplate=f'<b>{material}</b><br>Season: %{{x}}<br>Copies: %{{y:,}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='group',
+            title="Sum of Copies by Season and Material Name",
+            xaxis_title="Season",
+            yaxis_title="Sum of Copies",
+            height=450,
+            hovermode='x unified',
+            legend_title="Material Name"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Charged Amount by Season and Material - Grouped Columns
+    if "Material name" in df3d.columns:
+        st.markdown("#### 💰 Charged Amount by Season and Material (Grouped)")
+
+        material_amt_pivot = df3d.pivot_table(
+            values="Charged amount",
+            index="Season",
+            columns="Material name",
+            aggfunc="sum",
+            fill_value=0
+        )
+
+        fig = go.Figure()
+
+        for material in material_amt_pivot.columns:
+            fig.add_trace(go.Bar(
+                name=str(material),
+                x=material_amt_pivot.index,
+                y=material_amt_pivot[material],
+                text=[f'${x:,.0f}' if x > 0 else '' for x in material_amt_pivot[material]],
+                textposition='outside',
+                hovertemplate=f'<b>{material}</b><br>Season: %{{x}}<br>Revenue: $%{{y:,.2f}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='group',
+            title="Sum of Charged Amount by Season and Material Name",
+            xaxis_title="Season",
+            yaxis_title="Sum of Charged Amount",
+            height=450,
+            hovermode='x unified',
+            legend_title="Material Name"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Job Difficulty by Season - Grouped Horizontal
+    if "Special Information (Operator Only) Job difficulty" in df3d.columns:
+        st.markdown("#### ⚙️ Copies by Season and Job Difficulty (Grouped Horizontal)")
+
+        job_pivot = df3d.pivot_table(
+            values="Copies",
+            index="Season",
+            columns="Special Information (Operator Only) Job difficulty",
+            aggfunc="sum",
+            fill_value=0
+        )
+
+        fig = go.Figure()
+
+        for job_diff in job_pivot.columns:
+            fig.add_trace(go.Bar(
+                name=str(job_diff),
+                y=job_pivot.index,
+                x=job_pivot[job_diff],
+                orientation='h',
+                text=[f'{int(x):,}' if x > 0 else '' for x in job_pivot[job_diff]],
+                textposition='outside',
+                hovertemplate=f'<b>{job_diff}</b><br>Season: %{{y}}<br>Copies: %{{x:,}}<extra></extra>'
+            ))
+
+        fig.update_layout(
+            barmode='group',
+            title="Sum of Copies by Season and Job Difficulty",
+            xaxis_title="Sum of Copies",
+            yaxis_title="Season",
+            height=450,
+            hovermode='y unified',
+            legend_title="Job Difficulty"
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Material comparison across seasons - Stacked Area (Original)
+    if "Material name" in df3d.columns:
+        st.markdown("#### 🧱 Material Usage Evolution (Stacked Area)")
 
         material_pivot = df3d.pivot_table(
             values="Copies",
@@ -1466,34 +1871,43 @@ def create_poster_comparison(df):
     if "Paper size" in df_poster.columns:
         st.markdown("#### 📏 Poster Size Distribution Across Seasons")
 
-        size_pivot = df_poster.pivot_table(
-            values="Copies",
-            index="Season",
-            columns="Paper size",
-            aggfunc="sum",
-            fill_value=0
-        )
+        col1, col2 = st.columns([1, 4])
 
-        fig = go.Figure()
+        with col1:
+            size_chart_type = st.radio("Chart Type", ["Stacked", "Grouped"], key="poster_size_chart_type")
 
-        for size in size_pivot.columns:
-            fig.add_trace(go.Bar(
-                name=str(size),
-                x=size_pivot.index,
-                y=size_pivot[size],
-                hovertemplate=f'<b>{size}</b><br>Season: %{{x}}<br>Copies: %{{y:,}}<extra></extra>'
-            ))
+        with col2:
+            size_pivot = df_poster.pivot_table(
+                values="Copies",
+                index="Season",
+                columns="Paper size",
+                aggfunc="sum",
+                fill_value=0
+            )
 
-        fig.update_layout(
-            barmode='stack',
-            height=450,
-            hovermode='x unified',
-            xaxis_title="Season",
-            yaxis_title="Copies",
-            legend_title="Poster Size"
-        )
+            fig = go.Figure()
 
-        st.plotly_chart(fig, use_container_width=True)
+            for size in size_pivot.columns:
+                fig.add_trace(go.Bar(
+                    name=str(size),
+                    x=size_pivot.index,
+                    y=size_pivot[size],
+                    text=[f'{int(x):,}' if x > 0 else '' for x in size_pivot[size]],
+                    textposition='auto' if size_chart_type == "Stacked" else 'outside',
+                    hovertemplate=f'<b>{size}</b><br>Season: %{{x}}<br>Copies: %{{y:,}}<extra></extra>'
+                ))
+
+            fig.update_layout(
+                barmode='stack' if size_chart_type == "Stacked" else 'group',
+                height=450,
+                hovermode='x unified',
+                xaxis_title="Season",
+                yaxis_title="Copies",
+                legend_title="Poster Size",
+                title=f"Sum of Copies by Season and Paper Size ({size_chart_type})"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
 # ==================== MAIN APP ====================
 
